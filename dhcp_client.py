@@ -63,3 +63,26 @@ except ImportError:
     print "Get it from https://pypi.python.org/pypi/scapy and try again."
     sys.exit()
 
+def dhcp_seq():
+    '''
+        Genarate DHCP sequences ###
+        C   --------------------------   S
+                Discover -- > 
+                <-- Offer 
+                Request -- > 
+                <--- Ack
+    '''
+    # Defining some DHCP parameter 
+    x_id = random.randrange(1, 1000000)
+    hw = "00:00:5e" + str(RandMAC())[8:]
+    chaddr = mac2str(hw)
+
+    print "x_id {0} hw {1} chaddr {2}".format(x_id, hw, chaddr)
+    # Writing down the Discover packet 
+    dhcp_discover = Ether(dst="ff:ff:ff:ff:ff:ff",src=hw)/IP(src="0.0.0.0",dst="255.255.255.255")/UDP(sport=68,dport=67)/BOOTP(op=1, xid=x_id, chaddr=chaddr)/DHCP(options=[("message-type","discover"),"end"])
+
+    #Sending the DISCOVER packet and catching the OFFER reply
+    answd, unanswd = srp(dhcp_discover, iface='eth2', timeout = 2.5, verbose=0)
+
+if __name__ == "__main__":
+    dhcp_seq()
